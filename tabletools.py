@@ -8,15 +8,17 @@ class LabelledList:
             self.index = index
             
     def __str__(self):
-        #check for label of highest length
         max_len = 0
+        # checks for longest length label
         for i in self.values:
             if len(str(self.index[i])) > max_len:
                 max_len = len(str(self.index[i]))
         
+        max_len += 2
+        
         ret_str = ''
-        for i in self.values:
-            cur_val = self.values[i]
+        for i, val in enumerate(self.values):
+            cur_val = val
             cur_idx = self.index[i]
             ret_str += f'{cur_idx:>{max_len}}   {cur_val}\n'
             
@@ -132,3 +134,111 @@ class LabelledList:
     def map(self, f):
         new_vals = [f(i) for i in self.values]
         return LabelledList(new_vals, self.index)
+    
+class Table:
+    
+    def __init__(self, data, index=None, columns=None):
+        self.values = data
+        if index == None:
+            self.index = list(range(len(data)))
+        else:
+            self.index = index
+            
+        if columns == None:
+            self.columns = list(range(len(data[0])))
+        else:
+            self.columns = columns
+            
+        def __str__(self):
+            #check for longest length of any item in row, col or val
+            max_len = 0
+            for i in self.index:
+                if len(str(i)) > max_len:
+                    max_len = len(str(i))
+            
+            for i in range(len(self.values)):
+                for j in self.values[i]:
+                    if len(str(j)) > max_len:
+                        max_len = len(str(j))
+                    
+            for i in self.columns:
+                if len(str(i)) > max_len:
+                    max_len = len(str(i))
+            
+            max_len += 2 # just some extra padding
+            
+            #do header row
+            col_str = ' ' * max_len
+            for i in self.columns:
+                col_str += f'{i:>{max_len}}'
+            col_str += '\n'
+            
+            #do the rest
+            row_str = ''
+            for i, val in enumerate(self.index):
+                row_str += f'{val:>{max_len}}'
+                for j in self.values[i]:
+                    row_str += f'{j:>{max_len}}'
+                
+                row_str += '\n'
+                
+            return col_str + row_str
+                
+        def __repr__(self):
+            return str(self)
+        
+        def __getitem__(self, col_list):
+            if isinstance(col_list, LabelledList):
+                queries = col_list.values
+                matches = []
+                for i in queries:
+                    # matches gives indices of matches between self.columns and queries
+                    matches += [j for j, col in enumerate(self.columns) if col == i]
+                
+                new_data = [[] for i in range(len(self.values))]
+                for i in range(len(self.values)):
+                    # add the value from the original data if its index is in matches
+                    new_data[i] = [val for j, val in enumerate(self.values[i]) if j in matches]
+                    
+                #do the same for columns
+                new_cols = [col for i, col in enumerate(self.columns) if i in matches]
+                
+                return Table(new_data, self.index, new_cols)
+                
+            elif isinstance(col_list, list):
+                queries = col_list
+                
+                #boolean list
+                if all(isinstance(query, bool) for query in queries):
+                    new_data = [[] for i in range(len(self.values))]
+                    for i in range(len(self.values)):
+                        #add value to new data list if its index corresponds to True in queries
+                        new_data[i] = [val for j, val in enumerate(self.values[i]) if queries[j] == True]
+                        
+                    new_cols = [col for i, col in enumerate(self.columns) if queries[i] == True]
+
+                    return Table(new_data, self.index, new_cols)
+                
+                #any other list
+                else:
+                    matches = []
+                    for i in queries:
+                        # matches gives indices of matches between self.columns and queries
+                        matches += [j for j, col in enumerate(self.columns) if col == i]
+                    
+                    new_data = [[] for i in range(len(self.values))]
+                    for i in range(len(self.values)):
+                        # add the value from the original data if its index is in matches
+                        new_data[i] += [val for j, val in enumerate(self.values[i]) if j in matches]
+                        
+                    #do the same for columns
+                    new_cols = [col for i, col in enumerate(self.columns) if i in matches]
+                    
+                    return Table(new_data, self.index, new_cols)
+            
+            elif not isinstance(col_list, list):
+                query = col_list
+                matches = [i for i, col in enumerate(self.columns) if col == query]
+                
+                
+            
