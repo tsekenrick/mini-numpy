@@ -1,8 +1,8 @@
 * List Comprehensions
-	1. [short description 1](https://path.copied/for/permalink/to/code)
-	2. [short description 2](https://path.copied/for/permalink/to/code)
-	3. [short description 3](https://path.copied/for/permalink/to/code)
-	4. [short description 4](https://path.copied/for/permalink/to/code)
+	1. [Generate list with the indices that have a match between the LabelledList's labels and the list passed in as an argument](https://github.com/nyu-csci-ua-0480-007-fall-2018/tsekenrick-homework02/blob/eeab2647d25715cd50d390e5b5a39a21fd801b3b/tabletools.py#L91)
+	2. [Generate list of booleans, comparing elements at each index of scalar and self.values, returning true if they are the same](https://github.com/nyu-csci-ua-0480-007-fall-2018/tsekenrick-homework02/blob/eeab2647d25715cd50d390e5b5a39a21fd801b3b/tabletools.py#L125)
+	3. [Generate list of return values of a function being that is called with the args being the elements of self.values](https://github.com/nyu-csci-ua-0480-007-fall-2018/tsekenrick-homework02/blob/eeab2647d25715cd50d390e5b5a39a21fd801b3b/tabletools.py#L141)
+	4. [Select elements at specific indices of self.values(i) based on values from matches](https://github.com/nyu-csci-ua-0480-007-fall-2018/tsekenrick-homework02/blob/eeab2647d25715cd50d390e5b5a39a21fd801b3b/tabletools.py#L213)
 * Lambdas
-	1. [Used to return True if firs](https://path.copied/for/permalink/to/code)
-	2. [short description 2](https://path.copied/for/permalink/to/code)
+	1. [Used to return True if first 5 char of x is 'Reese'](https://github.com/nyu-csci-ua-0480-007-fall-2018/tsekenrick-homework02/blob/eeab2647d25715cd50d390e5b5a39a21fd801b3b/candy.ipynb#L230)
+	2. [Used to return True if x has length less than 10](https://github.com/nyu-csci-ua-0480-007-fall-2018/tsekenrick-homework02/blob/eeab2647d25715cd50d390e5b5a39a21fd801b3b/candy.ipynb#L311)
