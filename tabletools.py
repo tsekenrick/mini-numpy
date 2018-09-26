@@ -167,11 +167,12 @@ class Table:
         for i in self.columns:
             if len(str(i)) > max_len:
                 max_len = len(str(i))
-        
-        max_len += 2 # just some extra padding
+
+        max_len = min(max_len, 20) #cap out at 20
         
         #do header row
-        col_str = ' ' * max_len
+        #col_str = ' ' * max_len
+        col_str = ''
         for i in self.columns:
             col_str += f'{i:>{max_len}}'
         col_str += '\n'
@@ -299,6 +300,32 @@ class Table:
         
 
 def read_csv(fn):
+    rows = []
+    cols = []
     
-            
-            
+    
+    f = open(fn, 'r')
+    raw = f.readlines()
+    data = [[] for i in range(len(raw))]
+    cols = [i.strip() for i in raw[0].split(',')]
+    del raw[0]
+    
+    for i, line in enumerate(raw):
+        line_list = raw[i].split(',')
+        rows.append(line_list[0].strip())
+        
+        line_list.pop(0)
+        for item in line_list:
+            item.strip()
+            try: 
+                float(item)
+            except ValueError:
+                print(f'Cannot convert "{item}" to float')
+                
+        data[i] += [item for item in line_list]
+
+
+    return Table(data, rows, cols)
+    
+candy_table = read_csv('candy-data.csv')            
+print(candy_table)
