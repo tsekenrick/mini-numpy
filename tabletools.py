@@ -10,9 +10,12 @@ class LabelledList:
     def __str__(self):
         max_len = 0
         # checks for longest length label
-        for i in self.values:
+        for i, val in enumerate(self.values):
             if len(str(self.index[i])) > max_len:
                 max_len = len(str(self.index[i]))
+            
+            if len(val) > max_len:
+                max_len = len(val)
         
         max_len += 2
         
@@ -168,21 +171,20 @@ class Table:
             if len(str(i)) > max_len:
                 max_len = len(str(i))
 
-        max_len = min(max_len, 20) #cap out at 20
+        max_len += 2 # some extra padding
         
         #do header row
-        #col_str = ' ' * max_len
-        col_str = ''
+        col_str = ' ' * max_len
         for i in self.columns:
-            col_str += f'{i:>{max_len}}'
+            col_str += f'{i:<{max_len}}'
         col_str += '\n'
         
         #do the rest
         row_str = ''
         for i, val in enumerate(self.index):
-            row_str += f'{val:>{max_len}}'
+            row_str += f'{val:<{max_len}}'
             for j in self.values[i]:
-                row_str += f'{j:>{max_len}}'
+                row_str += f'{j:<{max_len}}'
             
             row_str += '\n'
             
@@ -306,10 +308,10 @@ def read_csv(fn):
     
     f = open(fn, 'r')
     raw = f.readlines()
-    data = [[] for i in range(len(raw))]
     cols = [i.strip() for i in raw[0].split(',')]
     del raw[0]
-    
+    data = [[] for i in range(len(raw))]
+
     for i, line in enumerate(raw):
         line_list = raw[i].split(',')
         rows.append(line_list[0].strip())
@@ -320,12 +322,16 @@ def read_csv(fn):
             try: 
                 float(item)
             except ValueError:
-                print(f'Cannot convert "{item}" to float')
+                continue
                 
         data[i] += [item for item in line_list]
-
-
-    return Table(data, rows, cols)
+    if(len(cols) > len(data[0])):
+        del cols[0]
     
-candy_table = read_csv('candy-data.csv')            
-print(candy_table)
+    return Table(data, rows, cols)
+ 
+if __name__ == '__main__':
+    candy_table = read_csv('candy-data.csv')            
+    new = candy_table[['chocolate', 'peanutyalmondy','winpercent']]
+    bools = [True if i=='1' else False for i in candy_table['chocolate'].values]
+    print(bools)
