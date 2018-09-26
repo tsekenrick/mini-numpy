@@ -39,7 +39,7 @@ class LabelledList:
             for i in queries:
                 # matches gives indices of matches between self.index and queries
                 matches += [j for j, key in enumerate(keys) if key == i]
-                # flat_list = [item for sublist in l for item in sublist] try this if need append
+
             new_values = []
             new_index = []
             
@@ -172,10 +172,6 @@ class Table:
                 max_len = len(str(i))
 
         max_len += 2 # some extra padding
-        
-        # limit max len for sufficiently wide tables
-        if len(self.columns) > 5:
-            max_len = min(15, max_len)
         
         #do header row
         col_str = ' ' * max_len
@@ -330,16 +326,16 @@ def read_csv(fn):
         rows.append(line_list[0].strip())
         
         line_list.pop(0)
-        for item in line_list:
+        for j, item in enumerate(line_list):
             item = item.strip()
             item = item.strip('\n')
             try: 
-                item = float(item)
+                data[i].append(float(item))
             except ValueError:
                 print("unable to convert" + item)
         
         # print(line_list) why is line list unchanged?
-        data[i] += [item for item in line_list]
+        #data[i] += [item for item in line_list]
     if(len(cols) > len(data[0])):
         del cols[0]
     
@@ -348,6 +344,6 @@ def read_csv(fn):
 if __name__ == '__main__':
     candy_table = read_csv('candy-data.csv')       
     new = candy_table[['chocolate', 'peanutyalmondy','winpercent']]
-    bools = [True if i=='1' else False for i in candy_table['chocolate']]
+    bools = [True if i==1 else False for i in candy_table['chocolate']]
     new_filtered = new[bools]
     print(new_filtered)
