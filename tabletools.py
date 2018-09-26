@@ -23,7 +23,7 @@ class LabelledList:
         for i, val in enumerate(self.values):
             cur_val = val
             cur_idx = self.index[i]
-            ret_str += f'{cur_idx:>{max_len}}   {cur_val}\n'
+            ret_str += f'{cur_idx:<{max_len}}   {cur_val}\n'
             
         return ret_str
         
@@ -119,7 +119,7 @@ class LabelledList:
             self.values[i] = value
             
     def __iter__(self):
-        return self.values
+        return iter(self.values)
     
     def __eq__(self, scalar):
         bool_list = [i==scalar for i in self.values]
@@ -173,6 +173,10 @@ class Table:
 
         max_len += 2 # some extra padding
         
+        # limit max len for sufficiently wide tables
+        if len(self.columns) > 5:
+            max_len = min(15, max_len)
+        
         #do header row
         col_str = ' ' * max_len
         for i in self.columns:
@@ -182,12 +186,14 @@ class Table:
         #do the rest
         row_str = ''
         for i, val in enumerate(self.index):
+                
             row_str += f'{val:<{max_len}}'
+ 
             for j in self.values[i]:
                 row_str += f'{j:<{max_len}}'
             
             row_str += '\n'
-            
+                
         return col_str + row_str
             
     def __repr__(self):
@@ -216,14 +222,21 @@ class Table:
             
             #boolean list
             if all(isinstance(query, bool) for query in queries):
-                new_data = [[] for i in range(len(self.values))]
-                for i in range(len(self.values)):
+                #new_data = [[] for i in range(len(self.values))]
+                #for i in range(len(self.values)):
                     #add value to new data list if its index corresponds to True in queries
-                    new_data[i] = [val for j, val in enumerate(self.values[i]) if queries[j] == True]
+                #    new_data[i] = [val for j, val in enumerate(self.values[i]) if queries[j] == True]
                     
-                new_cols = [col for i, col in enumerate(self.columns) if queries[i] == True]
+                #new_cols = [col for i, col in enumerate(self.columns) if queries[i] == True]
+                matches = [i for i, query in enumerate(queries) if query == True]
+                new_data = [[] for i in range(len(matches))]
 
-                return Table(new_data, self.index, new_cols)
+                for i, idx in enumerate(matches):
+                    new_data[i] = self.values[idx]
+                        
+                new_idx = [label for i, label in enumerate(self.index) if i in matches]
+
+                return Table(new_data, new_idx, self.columns)
             
             #any other list
             else:
@@ -318,12 +331,14 @@ def read_csv(fn):
         
         line_list.pop(0)
         for item in line_list:
-            item.strip()
+            item = item.strip()
+            item = item.strip('\n')
             try: 
-                float(item)
+                item = float(item)
             except ValueError:
-                continue
-                
+                print("unable to convert" + item)
+        
+        # print(line_list) why is line list unchanged?
         data[i] += [item for item in line_list]
     if(len(cols) > len(data[0])):
         del cols[0]
@@ -331,7 +346,8 @@ def read_csv(fn):
     return Table(data, rows, cols)
  
 if __name__ == '__main__':
-    candy_table = read_csv('candy-data.csv')            
+    candy_table = read_csv('candy-data.csv')       
     new = candy_table[['chocolate', 'peanutyalmondy','winpercent']]
-    bools = [True if i=='1' else False for i in candy_table['chocolate'].values]
-    print(bools)
+    bools = [True if i=='1' else False for i in candy_table['chocolate']]
+    new_filtered = new[bools]
+    print(new_filtered)
