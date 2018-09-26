@@ -104,6 +104,9 @@ class LabelledList:
             else:
                 return "No matches for query."
             
+        else:
+            return "Query not recognized."
+            
     def __setitem__(self, key, value):
         matches = []
         keys = self.index
@@ -149,96 +152,153 @@ class Table:
         else:
             self.columns = columns
             
-        def __str__(self):
-            #check for longest length of any item in row, col or val
-            max_len = 0
-            for i in self.index:
-                if len(str(i)) > max_len:
-                    max_len = len(str(i))
-            
-            for i in range(len(self.values)):
-                for j in self.values[i]:
-                    if len(str(j)) > max_len:
-                        max_len = len(str(j))
-                    
-            for i in self.columns:
-                if len(str(i)) > max_len:
-                    max_len = len(str(i))
-            
-            max_len += 2 # just some extra padding
-            
-            #do header row
-            col_str = ' ' * max_len
-            for i in self.columns:
-                col_str += f'{i:>{max_len}}'
-            col_str += '\n'
-            
-            #do the rest
-            row_str = ''
-            for i, val in enumerate(self.index):
-                row_str += f'{val:>{max_len}}'
-                for j in self.values[i]:
-                    row_str += f'{j:>{max_len}}'
-                
-                row_str += '\n'
-                
-            return col_str + row_str
-                
-        def __repr__(self):
-            return str(self)
+    def __str__(self):
+        #check for longest length of any item in row, col or val
+        max_len = 0
+        for i in self.index:
+            if len(str(i)) > max_len:
+                max_len = len(str(i))
         
-        def __getitem__(self, col_list):
-            if isinstance(col_list, LabelledList):
-                queries = col_list.values
+        for i in range(len(self.values)):
+            for j in self.values[i]:
+                if len(str(j)) > max_len:
+                    max_len = len(str(j))
+                
+        for i in self.columns:
+            if len(str(i)) > max_len:
+                max_len = len(str(i))
+        
+        max_len += 2 # just some extra padding
+        
+        #do header row
+        col_str = ' ' * max_len
+        for i in self.columns:
+            col_str += f'{i:>{max_len}}'
+        col_str += '\n'
+        
+        #do the rest
+        row_str = ''
+        for i, val in enumerate(self.index):
+            row_str += f'{val:>{max_len}}'
+            for j in self.values[i]:
+                row_str += f'{j:>{max_len}}'
+            
+            row_str += '\n'
+            
+        return col_str + row_str
+            
+    def __repr__(self):
+        return str(self)
+    
+    def __getitem__(self, col_list):
+        if isinstance(col_list, LabelledList):
+            queries = col_list.values
+            matches = []
+            for i in queries:
+                # matches gives indices of matches between self.columns and queries
+                matches += [j for j, col in enumerate(self.columns) if col == i]
+            
+            new_data = [[] for i in range(len(self.values))]
+            for i in range(len(self.values)):
+                # add the value from the original data for each time its index occurs in matches
+                new_data[i] = [self.values[i][idx] for idx in matches]
+                
+            #creates a clone of queries assuming all elements in queries existed in self.columns
+            new_cols = [query for query in queries if query in self.columns]
+            
+            return Table(new_data, self.index, new_cols)
+            
+        elif isinstance(col_list, list):
+            queries = col_list
+            
+            #boolean list
+            if all(isinstance(query, bool) for query in queries):
+                new_data = [[] for i in range(len(self.values))]
+                for i in range(len(self.values)):
+                    #add value to new data list if its index corresponds to True in queries
+                    new_data[i] = [val for j, val in enumerate(self.values[i]) if queries[j] == True]
+                    
+                new_cols = [col for i, col in enumerate(self.columns) if queries[i] == True]
+
+                return Table(new_data, self.index, new_cols)
+            
+            #any other list
+            else:
                 matches = []
                 for i in queries:
                     # matches gives indices of matches between self.columns and queries
                     matches += [j for j, col in enumerate(self.columns) if col == i]
-                
+            
                 new_data = [[] for i in range(len(self.values))]
                 for i in range(len(self.values)):
-                    # add the value from the original data if its index is in matches
-                    new_data[i] = [val for j, val in enumerate(self.values[i]) if j in matches]
-                    
-                #do the same for columns
-                new_cols = [col for i, col in enumerate(self.columns) if i in matches]
+                    # add the value from the original data for each time its index occurs in matches
+                    new_data[i] = [self.values[i][idx] for idx in matches]
+                
+                #creates a clone of queries assuming all elements in queries existed in self.columns
+                new_cols = [query for query in queries if query in self.columns]
                 
                 return Table(new_data, self.index, new_cols)
-                
-            elif isinstance(col_list, list):
-                queries = col_list
-                
-                #boolean list
-                if all(isinstance(query, bool) for query in queries):
-                    new_data = [[] for i in range(len(self.values))]
-                    for i in range(len(self.values)):
-                        #add value to new data list if its index corresponds to True in queries
-                        new_data[i] = [val for j, val in enumerate(self.values[i]) if queries[j] == True]
-                        
-                    new_cols = [col for i, col in enumerate(self.columns) if queries[i] == True]
-
-                    return Table(new_data, self.index, new_cols)
-                
-                #any other list
-                else:
-                    matches = []
-                    for i in queries:
-                        # matches gives indices of matches between self.columns and queries
-                        matches += [j for j, col in enumerate(self.columns) if col == i]
-                    
-                    new_data = [[] for i in range(len(self.values))]
-                    for i in range(len(self.values)):
-                        # add the value from the original data if its index is in matches
-                        new_data[i] += [val for j, val in enumerate(self.values[i]) if j in matches]
-                        
-                    #do the same for columns
-                    new_cols = [col for i, col in enumerate(self.columns) if i in matches]
-                    
-                    return Table(new_data, self.index, new_cols)
+        
+        elif not isinstance(col_list, list):
+            query = col_list
+            # list of all indices of self.columns that matches query
+            matches = [i for i, col in enumerate(self.columns) if col == query]
+            if len(matches) == 1:
+                return LabelledList([self.values[i][matches[0]] for i in range(len(self.values))], self.index)
             
-            elif not isinstance(col_list, list):
-                query = col_list
-                matches = [i for i, col in enumerate(self.columns) if col == query]
+            elif len(matches) > 1:
+                new_data = [[] for i in range(len(self.values))]
+                for i in range(len(self.values)):
+                    new_data[i] = [self.values[i][idx] for idx in matches]
+                    
+                new_cols = [query for query in queries if query in self.columns]
                 
-                
+                return Table(new_data, self.index, new_cols)
+            
+            else:
+                return "No matches for query."
+            
+        else:
+            return "Query not recognized."
+    
+    def __eq__(self, other):
+        if not isinstance(other, Table): 
+            return False
+        elif self.values != other.values: 
+            return False
+        elif self.index != other.index:
+            return False
+        elif self.columns != other.columns:
+            return False
+        else:
+            return True
+        
+    def __ne__(self, other):
+        return not self.eq(other)
+    
+    def head(self, n):
+        new_data = [[] for i in range(n)]
+        for i in range(len(new_data)):
+            new_data[i] = self.values[i]
+            
+        new_idx = self.index[:n]
+        
+        return Table(new_data, new_idx, self.columns)
+    
+    def tail(self, n):
+        new_data = [[] for i in range(n)]
+        for i, j in enumerate(range(len(self.values) - n, len(self.values))):
+            new_data[i] = self.values[j]
+            
+        new_idx = self.index[-n:]
+        
+        return Table(new_data, new_idx, self.columns)
+    
+    def shape(self):
+        return(len(self.index), len(self.columns))
+        
+
+def read_csv(fn):
+    
+            
             
